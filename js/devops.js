@@ -15,8 +15,58 @@ window.initializePage = function() {
     // PRテーブルの機能を初期化
     initializePRTable();
     
+    // AIボタンのイベントリスナーを設定
+    initializeAIButtons();
+    
     console.log('DevOps分析ページの初期化完了');
 };
+
+// AIボタンの初期化
+function initializeAIButtons() {
+    console.log('DevOpsページ: AIボタンを初期化します');
+
+    // ボタンを取得
+    const aiButtons = document.querySelectorAll('.ai-button');
+    console.log(`DevOpsページ: ${aiButtons.length}個のAIボタンが見つかりました`);
+    
+    if (aiButtons.length === 0) {
+        console.warn('DevOpsページ: AIボタンが見つかりませんでした');
+        return;
+    }
+
+    // すべてのボタンに対して既存のイベントリスナーをクリア
+    aiButtons.forEach(button => {
+        // クローンしてイベントリスナーを除去
+        const newButton = button.cloneNode(true);
+        if (button.parentNode) {
+            button.parentNode.replaceChild(newButton, button);
+            console.log('DevOpsページ: ボタンをクローンして置き換えました');
+        } else {
+            console.error('DevOpsページ: ボタンの親ノードが見つかりません');
+        }
+    });
+    
+    // 再度ボタンを取得してイベントリスナーを設定
+    const refreshedButtons = document.querySelectorAll('.ai-button');
+    console.log(`DevOpsページ: ${refreshedButtons.length}個の新しいAIボタンにイベントリスナーを設定します`);
+    
+    refreshedButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // ボタンのdata-context属性からコンテキストを取得
+            const context = this.getAttribute('data-context') || 'devops-trend';
+            
+            console.log('DevOpsページ: AIボタンがクリックされました。コンテキスト:', context);
+            
+            // FABManagerを直接呼び出す
+            FABManager.openContextualHelp(context);
+        });
+    });
+    
+    console.log(`DevOpsページ: ${refreshedButtons.length}個のAIボタンのイベントリスナー設定が完了しました`);
+}
 
 // メトリクスカードの初期化
 function initializeMetricCards() {

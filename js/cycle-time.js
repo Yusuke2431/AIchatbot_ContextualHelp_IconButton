@@ -138,8 +138,10 @@ function initializePagination() {
     }
 }
 
-// ページロード時に実行
-document.addEventListener('DOMContentLoaded', function() {
+// ページ固有の初期化関数
+window.initializePage = function() {
+    console.log('サイクルタイム分析ページを初期化中...');
+    
     initializePeriodButtons();
     initializeTableSort();
     initializeCheckboxes();
@@ -147,7 +149,59 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 初期チャート表示
     updateChart('ウィークリー');
-});
+    
+    // AIボタンのイベントリスナーを設定
+    initializeAIButtons();
+    
+    console.log('サイクルタイム分析ページの初期化完了');
+};
+
+// AIボタンの初期化
+function initializeAIButtons() {
+    console.log('サイクルタイムページ: AIボタンを初期化します');
+
+    // ボタンを取得
+    const aiButtons = document.querySelectorAll('.ai-button');
+    console.log(`サイクルタイムページ: ${aiButtons.length}個のAIボタンが見つかりました`);
+    
+    if (aiButtons.length === 0) {
+        console.warn('サイクルタイムページ: AIボタンが見つかりませんでした');
+        return;
+    }
+
+    // すべてのボタンに対して既存のイベントリスナーをクリア
+    aiButtons.forEach(button => {
+        // クローンしてイベントリスナーを除去
+        const newButton = button.cloneNode(true);
+        if (button.parentNode) {
+            button.parentNode.replaceChild(newButton, button);
+            console.log('サイクルタイムページ: ボタンをクローンして置き換えました');
+        } else {
+            console.error('サイクルタイムページ: ボタンの親ノードが見つかりません');
+        }
+    });
+    
+    // 再度ボタンを取得してイベントリスナーを設定
+    const refreshedButtons = document.querySelectorAll('.ai-button');
+    console.log(`サイクルタイムページ: ${refreshedButtons.length}個の新しいAIボタンにイベントリスナーを設定します`);
+    
+    refreshedButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // ボタンのdata-context属性からコンテキストを取得
+            const context = this.getAttribute('data-context') || 'cycle-time-summary';
+            
+            console.log('サイクルタイムページ: AIボタンがクリックされました。コンテキスト:', context);
+            
+            // FABManagerを直接呼び出す
+            FABManager.openContextualHelp(context);
+        });
+    });
+    
+    console.log(`サイクルタイムページ: ${refreshedButtons.length}個のAIボタンのイベントリスナー設定が完了しました`);
+}
 
 // リサイズイベントでのレスポンシブ対応
 window.addEventListener('resize', function() {

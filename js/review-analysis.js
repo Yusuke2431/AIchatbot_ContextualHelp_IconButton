@@ -1,339 +1,277 @@
-// レビュー分析ページ専用JavaScript
+// レビュー分析用のページ初期化スクリプト
 
-class ReviewAnalysis {
-    constructor() {
-        this.init();
-    }
+// ページ管理オブジェクト
+const ReviewAnalysis = function() {
+    // 初期設定
+    this.chartData = {
+        labels: ['2023/1', '2023/2', '2023/3', '2023/4', '2023/5', '2023/6'],
+        datasets: [
+            {
+                label: 'レビュー総数',
+                data: [320, 380, 420, 380, 450, 510],
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.3
+            },
+            {
+                label: 'コメント総数',
+                data: [1450, 1800, 2100, 1950, 2300, 2600],
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                tension: 0.3
+            },
+            {
+                label: '平均コメント数',
+                data: [4.5, 4.7, 5.0, 5.1, 5.1, 5.1],
+                borderColor: 'rgb(54, 162, 235)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                tension: 0.3
+            }
+        ]
+    };
+    
+    this.commentsData = {
+        labels: ['MUST', 'SHOULD', 'WANT', 'ナレッジ共有'],
+        datasets: [{
+            data: [28, 45, 15, 12],
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)'
+            ],
+            borderWidth: 1
+        }]
+    };
+    
+    this.reviewersData = {
+        labels: ['A. 山田', 'B. 佐藤', 'C. 鈴木', 'D. 田中', 'E. 伊藤', 'その他'],
+        datasets: [{
+            label: 'レビュー数',
+            data: [42, 38, 34, 29, 25, 68],
+            backgroundColor: 'rgba(75, 192, 192, 0.7)',
+            borderWidth: 1
+        }]
+    };
+    
+    this.timelineData = {
+        labels: ['2023/1', '2023/2', '2023/3', '2023/4', '2023/5', '2023/6'],
+        datasets: [
+            {
+                label: 'レビュー時間平均',
+                data: [85, 78, 92, 75, 68, 64],
+                borderColor: 'rgb(54, 162, 235)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                tension: 0.3
+            }
+        ]
+    };
+};
 
-    init() {
+// 初期化メソッド
+ReviewAnalysis.prototype.init = function() {
+    // チャートの初期化
+    this.initCharts();
+    
+    // イベントリスナーの設定
         this.setupEventListeners();
-        this.setupInteractiveElements();
-        this.loadInitialData();
-    }
+    
+    // データテーブルの初期化
+    this.initDataTable();
+    
+    console.log('レビュー分析の初期化が完了しました');
+};
 
-    setupEventListeners() {
-        // 時間範囲ボタンのイベントリスナー
-        document.querySelectorAll('.time-range-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.handleTimeRangeChange(e));
-        });
-
-        // チェックボックスのイベントリスナー
-        const weekendCheckbox = document.querySelector('.checkbox-label input[type="checkbox"]');
-        if (weekendCheckbox) {
-            weekendCheckbox.addEventListener('change', (e) => this.handleWeekendToggle(e));
+// チャートの初期化
+ReviewAnalysis.prototype.initCharts = function() {
+    // メインチャート
+    const mainChartCtx = document.getElementById('reviewChart').getContext('2d');
+    new Chart(mainChartCtx, {
+        type: 'line',
+        data: this.chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
         }
-
-        // ページネーションのイベントリスナー
-        document.querySelectorAll('.pagination-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => this.handlePagination(e));
-        });
-
-        // テーブルのソート機能
-        document.querySelectorAll('.review-detail-table th').forEach(th => {
-            th.addEventListener('click', (e) => this.handleTableSort(e));
-        });
-    }
-
-    setupInteractiveElements() {
-        // ホバー効果の設定
-        this.setupHoverEffects();
-        
-        // ツールチップの設定
-        this.setupTooltips();
-    }
-
-    loadInitialData() {
-        // 初期データの読み込み（実際の実装では API から取得）
-        console.log('レビュー分析データを読み込み中...');
-        
-        // サンプルデータでメトリクスを更新
-        this.updateMetrics({
-            totalReviews: 821.3,
-            avgCommentsPerPR: 2.5,
-            avgCommentsPerReview: 0.5
-        });
-    }
-
-    handleTimeRangeChange(e) {
-        const clickedBtn = e.target;
-        
-        // アクティブ状態の切り替え
-        document.querySelectorAll('.time-range-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        clickedBtn.classList.add('active');
-        
-        const timeRange = clickedBtn.textContent;
-        console.log(`時間範囲を変更: ${timeRange}`);
-        
-        // グラフの更新（実際の実装では API コール）
-        this.updateCharts(timeRange);
-        
-        // メトリクスの更新
-        this.updateMetricsForTimeRange(timeRange);
-    }
-
-    handleWeekendToggle(e) {
-        const showWeekends = e.target.checked;
-        console.log(`土日祝の表示: ${showWeekends ? 'ON' : 'OFF'}`);
-        
-        // グラフの更新
-        this.updateChartsWithWeekendData(showWeekends);
-    }
-
-    handlePagination(e) {
-        const btn = e.target;
-        
-        if (btn.disabled || btn.classList.contains('active')) {
-            return;
+    });
+    
+    // コメントタイプチャート
+    const commentsChartCtx = document.getElementById('commentsChart').getContext('2d');
+    new Chart(commentsChartCtx, {
+        type: 'pie',
+        data: this.commentsData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right'
+                }
+            }
         }
-        
-        // ページネーションの処理
-        if (btn.classList.contains('prev')) {
-            this.goToPreviousPage();
-        } else if (btn.classList.contains('next')) {
-            this.goToNextPage();
-        } else if (btn.classList.contains('page')) {
-            const pageNumber = parseInt(btn.textContent);
-            this.goToPage(pageNumber);
+    });
+    
+    // レビュアー分布チャート
+    const reviewersChartCtx = document.getElementById('reviewersChart').getContext('2d');
+    new Chart(reviewersChartCtx, {
+        type: 'bar',
+        data: this.reviewersData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
         }
-    }
-
-    handleTableSort(e) {
-        const th = e.target;
-        const table = th.closest('table');
-        const columnIndex = Array.from(th.parentNode.children).indexOf(th);
-        
-        console.log(`テーブルソート: 列 ${columnIndex}`);
-        
-        // ソート状態の切り替え
-        const currentSort = th.dataset.sort || 'none';
-        const newSort = currentSort === 'asc' ? 'desc' : 'asc';
-        
-        // 全てのソート状態をリセット
-        table.querySelectorAll('th').forEach(header => {
-            header.dataset.sort = 'none';
-            header.classList.remove('sort-asc', 'sort-desc');
-        });
-        
-        // 新しいソート状態を設定
-        th.dataset.sort = newSort;
-        th.classList.add(`sort-${newSort}`);
-        
-        // テーブルデータのソート（実際の実装では API から再取得）
-        this.sortTableData(columnIndex, newSort);
-    }
-
-    updateMetrics(data) {
-        // メトリクス値の更新
-        const metrics = document.querySelectorAll('.metric-number');
-        if (metrics[0]) metrics[0].textContent = data.totalReviews;
-        if (metrics[1]) metrics[1].textContent = data.avgCommentsPerPR;
-        if (metrics[2]) metrics[2].textContent = data.avgCommentsPerReview;
-        
-        // アニメーション効果
-        metrics.forEach(metric => {
-            metric.classList.add('updated');
-            setTimeout(() => metric.classList.remove('updated'), 300);
-        });
-    }
-
-    updateCharts(timeRange) {
-        // グラフの更新（実際の実装では Chart.js や D3.js を使用）
-        console.log(`${timeRange}のデータでグラフを更新`);
-        
-        // プレースホルダーにローディング状態を表示
-        const placeholders = document.querySelectorAll('.chart-placeholder');
-        placeholders.forEach(placeholder => {
-            placeholder.style.opacity = '0.5';
-            setTimeout(() => {
-                placeholder.style.opacity = '1';
-            }, 500);
-        });
-    }
-
-    updateChartsWithWeekendData(showWeekends) {
-        console.log(`土日祝データを${showWeekends ? '含めて' : '除外して'}グラフを更新`);
-        
-        // グラフの更新処理
-        this.updateCharts('current');
-    }
-
-    updateMetricsForTimeRange(timeRange) {
-        // 時間範囲に応じたメトリクスの更新
-        const mockData = {
-            'デイリー': { totalReviews: 12.5, avgCommentsPerPR: 1.8, avgCommentsPerReview: 0.3 },
-            'ウィークリー': { totalReviews: 87.2, avgCommentsPerPR: 2.1, avgCommentsPerReview: 0.4 },
-            'マンスリー': { totalReviews: 821.3, avgCommentsPerPR: 2.5, avgCommentsPerReview: 0.5 }
-        };
-        
-        const data = mockData[timeRange] || mockData['マンスリー'];
-        this.updateMetrics(data);
-    }
-
-    goToPreviousPage() {
-        console.log('前のページへ');
-        // ページネーション処理
-        this.updateTableData('prev');
-    }
-
-    goToNextPage() {
-        console.log('次のページへ');
-        // ページネーション処理
-        this.updateTableData('next');
-    }
-
-    goToPage(pageNumber) {
-        console.log(`ページ ${pageNumber} へ移動`);
-        
-        // アクティブページの更新
-        document.querySelectorAll('.pagination-btn.page').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        
-        const targetBtn = Array.from(document.querySelectorAll('.pagination-btn.page'))
-            .find(btn => parseInt(btn.textContent) === pageNumber);
-        if (targetBtn) {
-            targetBtn.classList.add('active');
+    });
+    
+    // タイムラインチャート
+    const timelineChartCtx = document.getElementById('timelineChart').getContext('2d');
+    new Chart(timelineChartCtx, {
+        type: 'line',
+        data: this.timelineData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
         }
-        
-        // テーブルデータの更新
-        this.updateTableData(pageNumber);
+    });
+};
+
+// イベントリスナーの設定
+ReviewAnalysis.prototype.setupEventListeners = function() {
+    const periodSelect = document.getElementById('periodSelect');
+    if (periodSelect) {
+        periodSelect.addEventListener('change', (e) => {
+            this.updateChartByPeriod(e.target.value);
+        });
+    }
+    
+    const teamSelect = document.getElementById('teamSelect');
+    if (teamSelect) {
+        teamSelect.addEventListener('change', (e) => {
+            this.updateChartByTeam(e.target.value);
+        });
+    }
+    
+    const projectSelect = document.getElementById('projectSelect');
+    if (projectSelect) {
+        projectSelect.addEventListener('change', (e) => {
+            this.updateChartByProject(e.target.value);
+        });
+    }
+};
+
+// データテーブルの初期化
+ReviewAnalysis.prototype.initDataTable = function() {
+    const table = document.getElementById('reviewTable');
+    if (table) {
+        $(table).DataTable({
+            paging: true,
+            searching: true,
+            ordering: true,
+            info: true,
+            pageLength: 10,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.10.25/i18n/Japanese.json'
+            }
+        });
+    }
+};
+
+// 期間によるチャート更新
+ReviewAnalysis.prototype.updateChartByPeriod = function(period) {
+    console.log(`期間が${period}に変更されました`);
+    // ここで実際のデータ更新を行う
+    // 例: APIからのデータ取得や、表示期間の変更など
+};
+
+// チームによるチャート更新
+ReviewAnalysis.prototype.updateChartByTeam = function(team) {
+    console.log(`チームが${team}に変更されました`);
+    // ここで実際のデータ更新を行う
+};
+
+// プロジェクトによるチャート更新
+ReviewAnalysis.prototype.updateChartByProject = function(project) {
+    console.log(`プロジェクトが${project}に変更されました`);
+    // ここで実際のデータ更新を行う
+};
+
+// ページの初期化処理（外部からの呼び出し用）
+window.initializePage = function() {
+    console.log('レビュー分析ページの初期化を開始します');
+    const reviewAnalysis = new ReviewAnalysis();
+    reviewAnalysis.init();
+    
+    // AIボタンのイベントリスナーを設定
+    initializeAIButtons();
+    
+    console.log('レビュー分析ページの初期化完了');
+};
+
+// AIボタンの初期化
+function initializeAIButtons() {
+    console.log('レビュー分析ページ: AIボタンを初期化します');
+
+    // ボタンを取得
+    const aiButtons = document.querySelectorAll('.ai-button');
+    console.log(`レビュー分析ページ: ${aiButtons.length}個のAIボタンが見つかりました`);
+    
+    if (aiButtons.length === 0) {
+        console.warn('レビュー分析ページ: AIボタンが見つかりませんでした');
+        return;
     }
 
-    sortTableData(columnIndex, sortOrder) {
-        console.log(`列 ${columnIndex} を ${sortOrder} でソート`);
-        
-        // 実際の実装では、ここでテーブルの行をソートする
-        const table = document.querySelector('.review-detail-table tbody');
-        if (!table) return;
-        
-        // ローディング状態の表示
-        table.style.opacity = '0.5';
-        setTimeout(() => {
-            table.style.opacity = '1';
-        }, 300);
-    }
-
-    updateTableData(action) {
-        const table = document.querySelector('.review-detail-table tbody');
-        if (!table) return;
-        
-        // ローディング状態の表示
-        table.style.opacity = '0.5';
-        
-        // 実際の実装では API からデータを取得
-        setTimeout(() => {
-            console.log(`テーブルデータを更新: ${action}`);
-            table.style.opacity = '1';
-        }, 300);
-    }
-
-    setupHoverEffects() {
-        // メトリクスカードのホバー効果
-        document.querySelectorAll('.metric-card').forEach(card => {
-            card.addEventListener('mouseenter', () => {
-                card.style.transform = 'translateY(-2px)';
-                card.style.transition = 'transform 0.2s ease';
-            });
+    // すべてのボタンに対して既存のイベントリスナーをクリア
+    aiButtons.forEach(button => {
+        // クローンしてイベントリスナーを除去
+        const newButton = button.cloneNode(true);
+        if (button.parentNode) {
+            button.parentNode.replaceChild(newButton, button);
+            console.log('レビュー分析ページ: ボタンをクローンして置き換えました');
+        } else {
+            console.error('レビュー分析ページ: ボタンの親ノードが見つかりません');
+        }
+    });
+    
+    // 再度ボタンを取得してイベントリスナーを設定
+    const refreshedButtons = document.querySelectorAll('.ai-button');
+    console.log(`レビュー分析ページ: ${refreshedButtons.length}個の新しいAIボタンにイベントリスナーを設定します`);
+    
+    refreshedButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             
-            card.addEventListener('mouseleave', () => {
-                card.style.transform = 'translateY(0)';
-            });
-        });
-    }
-
-    setupTooltips() {
-        // ツールチップの設定
-        document.querySelectorAll('[data-tooltip]').forEach(element => {
-            element.addEventListener('mouseenter', (e) => {
-                this.showTooltip(e.target, e.target.dataset.tooltip);
-            });
+            // ボタンのdata-context属性からコンテキストを取得
+            const context = this.getAttribute('data-context') || 'review-summary';
             
-            element.addEventListener('mouseleave', () => {
-                this.hideTooltip();
-            });
+            console.log('レビュー分析ページ: AIボタンがクリックされました。コンテキスト:', context);
+            
+            // FABManagerを直接呼び出す
+            FABManager.openContextualHelp(context);
         });
-    }
-
-    showTooltip(element, text) {
-        const tooltip = document.createElement('div');
-        tooltip.className = 'tooltip';
-        tooltip.textContent = text;
-        tooltip.style.cssText = `
-            position: absolute;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            z-index: 1000;
-            pointer-events: none;
-        `;
-        
-        document.body.appendChild(tooltip);
-        
-        const rect = element.getBoundingClientRect();
-        tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
-        tooltip.style.top = rect.top - tooltip.offsetHeight - 5 + 'px';
-        
-        this.currentTooltip = tooltip;
-    }
-
-    hideTooltip() {
-        if (this.currentTooltip) {
-            this.currentTooltip.remove();
-            this.currentTooltip = null;
-        }
-    }
+    });
+    
+    console.log(`レビュー分析ページ: ${refreshedButtons.length}個のAIボタンにイベントリスナーを設定完了しました`);
 }
 
-// ページ読み込み時の初期化
-document.addEventListener('DOMContentLoaded', () => {
-    new ReviewAnalysis();
-});
-
-// CSS アニメーション用のスタイルを動的に追加
-const style = document.createElement('style');
-style.textContent = `
-    .metric-number.updated {
-        animation: pulse 0.3s ease;
-    }
-    
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-    }
-    
-    .review-detail-table th {
-        cursor: pointer;
-        position: relative;
-    }
-    
-    .review-detail-table th:hover {
-        background: #e5e7eb;
-    }
-    
-    .review-detail-table th.sort-asc::after {
-        content: '↑';
-        position: absolute;
-        right: 8px;
-    }
-    
-    .review-detail-table th.sort-desc::after {
-        content: '↓';
-        position: absolute;
-        right: 8px;
-    }
-    
-    .tooltip {
-        animation: fadeIn 0.2s ease;
-    }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-`;
-document.head.appendChild(style);
+// コンソールに読み込み完了メッセージを表示
+console.log('レビュー分析ページのスクリプトがロードされました');

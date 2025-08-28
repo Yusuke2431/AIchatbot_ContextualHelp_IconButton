@@ -282,8 +282,69 @@ class TeamSummary {
     }
 }
 
-// ページ読み込み時に初期化
-document.addEventListener('DOMContentLoaded', () => {
+// ページ固有の初期化関数
+window.initializePage = function() {
+    console.log('チームサマリページを初期化中...');
+    
+    // チームサマリの初期化
     const teamSummary = new TeamSummary();
     teamSummary.init();
-});
+    
+    // AIボタンのイベントリスナーを設定
+    initializeAIButtons();
+    
+    console.log('チームサマリページの初期化完了');
+};
+
+// AIボタンの初期化
+function initializeAIButtons() {
+    // 直接イベントリスナーを設定する
+    console.log('チームサマリページ: AIボタンを初期化します');
+    
+    // クリアするボタンの取得
+    const allAIButtons = document.querySelectorAll('.ai-button');
+    console.log(`チームサマリページ: ${allAIButtons.length}個のAIボタンをクリアします`);
+    
+    // 共通関数が定義されていない場合はページ固有の処理を実行
+    console.log('チームサマリページ: 共通関数が見つからないためページ固有の処理を実行します');
+    
+    const aiButtons = document.querySelectorAll('.ai-button');
+    console.log(`チームサマリページ: ${aiButtons.length}個のAIボタンをクリアします`);
+    
+    if (aiButtons.length === 0) {
+        console.warn('チームサマリページ: AIボタンが見つかりませんでした');
+        return;
+    }
+    
+    // イベントリスナーを追加する前に既存のイベントリスナーをクリア
+    aiButtons.forEach(button => {
+        const oldButton = button.cloneNode(true);
+        if (button.parentNode) {
+            button.parentNode.replaceChild(oldButton, button);
+            console.log('チームサマリページ: ボタンをクローンして置き換えました');
+        } else {
+            console.error('チームサマリページ: ボタンの親ノードが見つかりません');
+        }
+    });
+    
+    // 新しいボタン参照を取得
+    const refreshedButtons = document.querySelectorAll('.ai-button');
+    console.log(`チームサマリページ: ${refreshedButtons.length}個の新しいAIボタンにイベントリスナーを設定します`);
+    
+    refreshedButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // ボタンのdata-context属性からコンテキストを取得
+            const context = this.getAttribute('data-context') || 'team-leadtime-summary';
+            
+            console.log('チームサマリページ: AIボタンがクリックされました。コンテキスト:', context);
+            
+            // FABManagerを直接呼び出す
+            FABManager.openContextualHelp(context);
+        });
+    });
+    
+    console.log(`チームサマリページ: ${refreshedButtons.length}個のAIボタンにイベントリスナーを設定完了しました`);
+}
